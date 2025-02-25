@@ -3,6 +3,8 @@ secrets:
     file: ./secrets/b5nine.com-fullchain.pem
   privkey:
     file: ./secrets/b5nine.com-privkey.pem
+  cfini:
+    file: ./secrets/b5nine.ini
 
 networks:
   caddy:
@@ -28,5 +30,13 @@ services:
     secrets:
       - privkey
       - fullchain
+      - cfini
     networks: 
       - caddy
+    configs:
+      - source: Caddyfile
+        target: /etc/caddy/CaddyfileMaybe
+configs:
+  Caddyfile:
+    content: |
+      strawberry fields forever

@@ -50,7 +50,7 @@ services:
       - ROOT_URL=https://git.b5nine.com
       - DOMAIN=git.b5nine.com
       - DB_TYPE=sqlite3
-      - SSH_DOMAIN=delft34
+      - SSH_DOMAIN=100.102.130.116
       - SSH_PORT=3022
       - OFFLINE_MODE=true
     volumes:

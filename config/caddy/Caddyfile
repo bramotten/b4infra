@@ -1,51 +1,78 @@
-(basics) {
-    tls /run/secrets/fullchain /run/secrets/privkey
-    # log {
-    #     output file /var/log/access.log
-    #     # format single_field common_log
-    # }
-}
-
-auth.b5nine.com {
-    import basics
-    reverse_proxy localhost:9000
-}
-
-
-# memos.b5nine.com {
-#     reverse_proxy memos:5230
+# {
+#         acme_dns cloudflare ${SECRET_CF_KEY}
+#         email ${SITE_EMAIL}
 # }
 
-lldap.b5nine.com {
-    reverse_proxy lldap:17170
+(basics) {
+    tls /run/secrets/fullchain /run/secrets/privkey
+    log {
+        output file /var/log/access.log
+        # format single_field common_log
+    }
 }
+
+# auth.b5nine.com {
+#     import basics
+#     reverse_proxy localhost:9000
+# }
 
 
 memos.b5nine.com {
     import basics
-    forward_auth authelia:9091 {
-        uri /api/authz/forward-auth
-        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-    }
-    reverse_proxy memos:5230
-
-    # directive execution order is only as stated if enclosed with route.
-    # route {
-    #     # always forward outpost path to actual outpost
-    #     reverse_proxy /outpost.goauthentik.io/* http://localhost:9000
-
-    #     # forward authentication to outpost
-    #     forward_auth localhost:9000 {
-    #         uri /outpost.goauthentik.io/auth/caddy
-
-    #         # capitalization of the headers is important, otherwise they will be empty
-    #         copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Entitlements X-Authentik-Email X-Authentik-Name X-Authentik-Uid X-Authentik-Jwt X-Authentik-Meta-Jwks X-Authentik-Meta-Outpost X-Authentik-Meta-Provider X-Authentik-Meta-App X-Authentik-Meta-Version
-
-    #         # optional, in this config trust all private ranges, should probably be set to the outposts IP
-    #         trusted_proxies private_ranges
-    #     }
-
-    #     # actual site configuration below, for example
-    #     reverse_proxy localhost:5230
-    # }
+    reverse_proxy http://100.102.130.116:5230
 }
+
+vault.b5nine.com {
+    import basics
+    reverse_proxy http://100.102.130.116:12380
+}
+
+sync.b5nine.com {
+    import basics
+    reverse_proxy http://100.102.130.116:8384
+}
+
+git.b5nine.com {
+    import basics
+    reverse_proxy http://100.102.130.116:3000
+}
+
+immich.b5nine.com {
+    import basics
+    reverse_proxy http://100.102.130.116:2283
+}
+
+
+# lldap.b5nine.com {
+#     reverse_proxy lldap:17170
+# }
+
+
+# memos.b5nine.com {
+#     import basics
+#     forward_auth authelia:9091 {
+#         uri /api/authz/forward-auth
+#         copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+#     }
+#     reverse_proxy memos:5230
+
+#     # directive execution order is only as stated if enclosed with route.
+#     # route {
+#     #     # always forward outpost path to actual outpost
+#     #     reverse_proxy /outpost.goauthentik.io/* http://localhost:9000
+
+#     #     # forward authentication to outpost
+#     #     forward_auth localhost:9000 {
+#     #         uri /outpost.goauthentik.io/auth/caddy
+
+#     #         # capitalization of the headers is important, otherwise they will be empty
+#     #         copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Entitlements X-Authentik-Email X-Authentik-Name X-Authentik-Uid X-Authentik-Jwt X-Authentik-Meta-Jwks X-Authentik-Meta-Outpost X-Authentik-Meta-Provider X-Authentik-Meta-App X-Authentik-Meta-Version
+
+#     #         # optional, in this config trust all private ranges, should probably be set to the outposts IP
+#     #         trusted_proxies private_ranges
+#     #     }
+
+#     #     # actual site configuration below, for example
+#     #     reverse_proxy localhost:5230
+#     # }
+# }

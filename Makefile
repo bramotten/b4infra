@@ -4,7 +4,7 @@ export AUTHENTIK_POSTGRESQL__USER
 AUTHENTIK_POSTGRESQL__PASSWORD ?= abdhjoisjijjwnw3233
 export AUTHENTIK_POSTGRESQL__PASSWORD
 
-up-%:
+%.yml:
 	docker compose -f $*.yml up
 
 authentik:

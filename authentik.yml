@@ -1,5 +1,6 @@
 # https://docs.goauthentik.io/docs/install-config/install/docker-compose
 # https://b5nine.com/if/flow/initial-setup/
+# https://xpufx.com/posts/protecting-your-first-app-with-authentik/
 
 secrets:
   akey:
@@ -51,8 +52,8 @@ services:
       - ./data/authentik/media:/media
       - ./data/authentik/templates:/templates
     ports:
-      - "${COMPOSE_PORT_HTTP:-9000}:9000"
-      - "${COMPOSE_PORT_HTTPS:-9443}:9443"
+      - "${COMPOSE_PORT_HTTP:-80}:9000"
+      - "${COMPOSE_PORT_HTTPS:-443}:9443"
     depends_on:
       postgresql:
         condition: service_healthy

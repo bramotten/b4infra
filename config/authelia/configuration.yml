@@ -1,0 +1,67 @@
+theme: dark #light/dark
+jwt_secret: any_randomly_generated_222222211alphanumeric_string
+
+default_redirection_url: https://google.com/ #where to redirect for a non-existent URL
+
+server:
+  host: 0.0.0.0
+  port: 9091
+  path: ""
+  read_buffer_size: 4096
+  write_buffer_size: 4096
+  enable_pprof: false
+  enable_expvars: false
+  disable_healthcheck: false
+  tls:
+    key: "/run/secrets/privkey"
+    certificate: "/run/secrets/fullchain"
+
+log:
+  level: debug
+
+totp:
+  issuer: b5nine.com #your authelia top-level domain
+  period: 30
+  skew: 1
+
+authentication_backend:
+  disable_reset_password: false
+  refresh_interval: 5m
+  file:
+    path: /config/users_database.yml #this is where your authorized users are stored
+    password:
+      algorithm: argon2id
+      iterations: 1
+      key_length: 32
+      salt_length: 16
+      memory: 1024
+      parallelism: 8
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: "auth.b5nine.com" #This should be your authentication URL
+      policy: bypass #Do not ask for credentials
+    - domain: "b5nine.com" #example domain to protect
+      policy: one_factor
+
+session:
+  name: authelia_session
+  secret: another_randomly_generated_alphanumberic_string
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
+  domain: b5nine.com  # Should match whatever your root protected domain is
+
+regulation:
+  max_retries: 3
+  find_time: 10m
+  ban_time: 12h
+
+storage:
+  local:
+    path: /config/db.sqlite3 #this is your databse. You could use a mysql database if you wanted, but we're going to use this one.
+  encryption_key: yet_another_randomly_generatedsdasd22_alphanumberic_string
+
+notifier:
+  filesystem:
+    filename: /config/notification.txt

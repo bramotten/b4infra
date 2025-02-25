@@ -1,13 +1,31 @@
+(basics) {
+    tls /run/secrets/fullchain /run/secrets/privkey
+    # log {
+    #     output file /var/log/access.log
+    #     # format single_field common_log
+    # }
+}
+
 auth.b5nine.com {
-	reverse_proxy authelia:9091
+    import basics
+    reverse_proxy authelia:9091
 }
 
 
-test.b5nine.com {
-forward_auth authelia:9091 {
-    uri /api/authz/forward-auth
-    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
-}
+# memos.b5nine.com {
+#     reverse_proxy memos:5230
+# }
 
-reverse_proxy authelia:9091
+# vault.b5nine.com {
+#     reverse_proxy vaultwarden:80
+# }
+
+
+memos.b5nine.com {
+    import basics
+    forward_auth authelia:9091 {
+        uri /api/authz/forward-auth
+        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+    }
+    reverse_proxy memos:5230
 }

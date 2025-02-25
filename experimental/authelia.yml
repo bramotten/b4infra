@@ -1,7 +1,6 @@
-# networks:
-#   net:
-#     driver: bridge
-
+networks:
+  caddy:
+    driver: bridge
 
 secrets:
   fullchain:
@@ -10,17 +9,17 @@ secrets:
     file: ./secrets/b5nine.com-privkey.pem
 
 services:
- 
+
   authelia:
     image: authelia/authelia:latest
     container_name: authelia
     # restart: unless-stopped
-    # expose:
-    #   - 9097
-    ports:
-      - "9097:9097"
-    # networks:
-    #   - net
+    expose:
+      - 9097
+    networks:
+      - caddy
+    # ports:
+    #   - "9097:9097"
     environment:
       - TZ=Europe/Amsterdam
     volumes:

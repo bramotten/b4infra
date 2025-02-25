@@ -4,6 +4,10 @@ secrets:
   privkey:
     file: ./secrets/b5nine.com-privkey.pem
 
+networks:
+  caddy:
+    external: true
+
 services:
   caddy:
     # image: iarekylew00t/caddy-cloudflare:latest
@@ -24,3 +28,5 @@ services:
     secrets:
       - privkey
       - fullchain
+    networks: 
+      - caddy

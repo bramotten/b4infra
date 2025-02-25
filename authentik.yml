@@ -35,6 +35,7 @@ services:
       timeout: 3s
     volumes:
       - redis:/data
+  
   server:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.2.0}
     restart: unless-stopped
@@ -45,6 +46,9 @@ services:
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+      AUTHENTIK_DISABLE_STARTUP_ANALYTICS: true
+      AUTHENTIK_DISABLE_UPDATE_CHECK: true
+      AUTHENTIK_ERROR_REPORTING__ENABLED: false
       AUTHENTIK_SECRET_KEY: file:///run/secrets/akey
     secrets:
       - akey
@@ -52,8 +56,8 @@ services:
       - ./data/authentik/media:/media
       - ./data/authentik/templates:/templates
     ports:
-      - "${COMPOSE_PORT_HTTP:-80}:9000"
-      - "${COMPOSE_PORT_HTTPS:-443}:9443"
+      - "80:9000"
+      - "443:9443"
     depends_on:
       postgresql:
         condition: service_healthy

@@ -24,18 +24,49 @@ totp:
   period: 30
   skew: 1
 
+# authentication_backend:
+#   disable_reset_password: false
+#   refresh_interval: 5m
+#   file:
+#     path: /config/users_database.yml #this is where your authorized users are stored
+#     password:
+#       algorithm: argon2id
+#       iterations: 1
+#       key_length: 32
+#       salt_length: 16
+#       memory: 1024
+#       parallelism: 8
+
+
+
 authentication_backend:
-  disable_reset_password: false
-  refresh_interval: 5m
-  file:
-    path: /config/users_database.yml #this is where your authorized users are stored
-    password:
-      algorithm: argon2id
-      iterations: 1
-      key_length: 32
-      salt_length: 16
-      memory: 1024
-      parallelism: 8
+  # Password reset through authelia works normally.
+  password_reset:
+    disable: false
+  # How often authelia should check if there is a user update in LDAP
+  refresh_interval: 1m
+  ldap:
+    implementation: lldap
+    # Pattern is ldap://HOSTNAME-OR-IP:PORT
+    # Normal ldap port is 389, standard in LLDAP is 3890
+    address: ldap://lldap:3890
+    # Set base dn that you configured in LLDAP
+    base_dn: dc=b5nine,dc=com
+    # The username and password of the bind user.
+    # "bind_user" should be the username you created for authentication with the "lldap_strict_readonly" permission. It is not recommended to use an actual admin account here.
+    # If you are configuring Authelia to change user passwords, then the account used here needs the "lldap_password_manager" permission instead.
+    user: uid=bind_user,ou=people,dc=example,dc=com
+    # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
+    password: 'asdg432342421sdf'
+    
+    # Optional: Setup TLS if you've enabled LDAPS
+    # tls:
+    #  skip_verify: false
+    #  minimum_version: TLS1.2
+    
+    # Optional: To allow sign in with BOTH username and email, you can change the users_filter to this
+    # users_filter: "(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))"
+
 
 access_control:
   default_policy: deny

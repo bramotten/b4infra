@@ -50,7 +50,7 @@ services:
       - ROOT_URL=https://git.b5nine.com
       - DOMAIN=git.b5nine.com
       - DB_TYPE=sqlite3
-      - SSH_DOMAIN=100.102.130.116
+      - SSH_DOMAIN=b5nine.com
       - SSH_PORT=3022
       - OFFLINE_MODE=true
     volumes:
@@ -75,3 +75,15 @@ services:
       - ./config/prometheus:/etc/prometheus
     ports:
       - 19090:9090
+
+# docker run --name some-sftpgo -p 8080:8080 -p 2022:2022 -d "drakkan/sftpgo:tag"
+# --mount type=bind,source=/my/own/sftpgodata,target=/srv/sftpgo \
+#     --mount type=bind,source=/my/own/sftpgohome,target=/var/lib/sftpgo
+  # sftpgo:
+  #   image: drakkan/sftpgo:latest
+  #   ports:
+  #     - 28080:8080
+  #     - 22022:2022 # sftp://100.102.130.116:22022
+  #   volumes:
+  #     - ./data/sftpgo:/srv/sftpgo
+  #     - ./config/sftpgo:/var/lib/sftpgo

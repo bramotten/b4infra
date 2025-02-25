@@ -6,10 +6,8 @@
 # The compose file on main may not be compatible with the latest release.
 #
 
-name: immich
-
 services:
-  immich-server:
+  server:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     # extends:
@@ -17,8 +15,9 @@ services:
     #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
     environment:
       POSTGRES_PASSWORD: sdf2v32332
-      POSTGRES_USER: user0
-      POSTGRES_DB: db0
+      POSTGRES_USER: postgres
+      POSTGRES_DB: immich
+      DB_HOSTNAME: postgres
     volumes:
       - ./data/immich/upload:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
@@ -26,7 +25,7 @@ services:
       - '2283:2283'
     depends_on:
       - redis
-      - database
+      - postgres
     restart: always
     healthcheck:
       disable: false
@@ -38,26 +37,26 @@ services:
       test: redis-cli ping || exit 1
     restart: always
 
-  database:
+  postgres:
     container_name: immich_postgres
     image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0
     environment:
       POSTGRES_PASSWORD: sdf2v32332
-      POSTGRES_USER: user0
-      POSTGRES_DB: db0
+      POSTGRES_USER: postgres
+      POSTGRES_DB: immich
       POSTGRES_INITDB_ARGS: '--data-checksums'
     volumes:
       - ./data/immich/postgresql:/var/lib/postgresql/data
-    # healthcheck:
-    #   test: >-
-    #     pg_isready --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" || exit 1;
-    #     Chksum="$$(psql --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" --tuples-only --no-align
-    #     --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')";
-    #     echo "checksum failure count is $$Chksum";
-    #     [ "$$Chksum" = '0' ] || exit 1
-    #   interval: 5m
-    #   start_interval: 30s
-    #   start_period: 5m
+    healthcheck:
+      test: >-
+        pg_isready --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" || exit 1;
+        Chksum="$$(psql --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" --tuples-only --no-align
+        --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')";
+        echo "checksum failure count is $$Chksum";
+        [ "$$Chksum" = '0' ] || exit 1
+      interval: 5m
+      start_interval: 30s
+      start_period: 5m
     command: >-
       postgres
       -c shared_preload_libraries=vectors.so

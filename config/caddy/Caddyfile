@@ -5,6 +5,9 @@
 
 (basics) {
     tls /run/secrets/fullchain /run/secrets/privkey
+    encode gzip
+}
+(logging) {
     log {
         output file /var/log/access.log
         # format single_field common_log
@@ -24,6 +27,7 @@ memos.b5nine.com {
 
 vault.b5nine.com {
     import basics
+    import logging
     reverse_proxy http://100.102.130.116:12380
 }
 
@@ -34,13 +38,20 @@ sync.b5nine.com {
 
 git.b5nine.com {
     import basics
+    import logging
     reverse_proxy http://100.102.130.116:3000
 }
 
 immich.b5nine.com {
     import basics
+    import logging
     reverse_proxy http://100.102.130.116:2283
 }
+
+# sftpgo.b5nine.com {
+#     import basics
+#     reverse_proxy http://100.102.130.116:28080
+# }
 
 
 # lldap.b5nine.com {

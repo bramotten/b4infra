@@ -1,42 +1,64 @@
-secrets:
-  fullchain:
-    file: ./secrets/b5nine.com-fullchain.pem
-  privkey:
-    file: ./secrets/b5nine.com-privkey.pem
-  cfini:
-    file: ./secrets/b5nine.ini
-
-networks:
-  caddy:
-    external: true
-
 services:
-  caddy:
-    # image: iarekylew00t/caddy-cloudflare:latest
-    image: caddy/caddy:2.9-alpine
-    container_name: caddy
-    # restart: unless-stopped
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_ADMIN
-      - NET_BIND_SERVICE # If binding to ports <1024
-    ports:
-      - 0.0.0.0:80:80/tcp # I'm probably 100.120.70.64
-      - 0.0.0.0:443:443
-    volumes:
-      - ./config/caddy:/etc/caddy:z
-      - ./data/caddy:/var/log:z
-    secrets:
-      - privkey
-      - fullchain
-      - cfini
-    networks: 
-      - caddy
-    configs:
-      - source: Caddyfile
-        target: /etc/caddy/CaddyfileMaybe
+    caddy:
+        image: iarekylew00t/caddy-cloudflare:latest
+        # image: caddy/caddy:2.9-alpine
+        container_name: caddy
+        # restart: unless-stopped
+        cap_drop:
+            - ALL
+        cap_add:
+            - NET_ADMIN
+            - NET_BIND_SERVICE # If binding to ports <1024
+        ports:
+            - 0.0.0.0:80:80/tcp # maybe ${CADDY__IPV4}
+            - 0.0.0.0:443:443
+        volumes:
+            - ./data/caddy:/var/log:z
+        configs:
+            - source: Caddyfile
+              target: /etc/caddy/Caddyfile
 configs:
-  Caddyfile:
-    content: |
-      strawberry fields forever
+    Caddyfile:
+        content: |
+            {
+                acme_dns cloudflare ${SECRET_CLOUDFLARE_B5NINE}
+                email b4mail@proton.me
+            }
+            (basics) {
+                  # tls /run/secrets/fullchain /run/secrets/privkey
+                  encode gzip
+              }
+              (logging) {
+                  log {
+                      output file /var/log/access.log
+                      # format single_field common_log
+                  }
+              }
+
+              memos.${CADDY__DOMAIN} {
+                  import basics
+                  reverse_proxy http://${CADDY__IPV4}:5230
+              }
+
+              vault.${CADDY__DOMAIN} {
+                  import basics
+                  import logging
+                  reverse_proxy http://${CADDY__IPV4}:12380
+              }
+
+              sync.${CADDY__DOMAIN} {
+                  import basics
+                  reverse_proxy http://${CADDY__IPV4}:8384
+              }
+
+              git.${CADDY__DOMAIN} {
+                  import basics
+                  import logging
+                  reverse_proxy http://${CADDY__IPV4}:3000
+              }
+
+              immich.${CADDY__DOMAIN} {
+                  import basics
+                  import logging
+                  reverse_proxy http://${CADDY__IPV4}:2283
+              }

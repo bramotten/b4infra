@@ -1,0 +1,20 @@
+services:
+    rclone:
+        container_name: rclone
+        image: "rclone/rclone:latest"
+        restart: unless-stopped
+        stdin_open: true
+        tty: true
+        volumes:
+            - ./config/rclone:/config
+            - ./data:/data
+        ports:
+            - 0.0.0.0:5572:5572
+        entrypoint:
+            - rclone
+            - rcd
+            - --rc-web-gui
+            - --rc-web-gui-no-open-browser
+            - --rc-addr=0.0.0.0:5572
+            - --rc-user=${RCLONE__RC_USER}
+            - --rc-pass=${RCLONE__RC_PASS}

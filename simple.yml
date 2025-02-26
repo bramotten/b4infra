@@ -1,89 +1,82 @@
 services:
-  memos:
-    image: neosmemo/memos:stable
-    container_name: memos
-    restart: unless-stopped
-    # expose: [5230/tcp]
-    ports:
-      - 5230:5230
-    volumes:
-      - ./data/memos:/var/opt/memos
+    memos:
+        image: neosmemo/memos:stable
+        container_name: memos
+        # expose: [5230/tcp]
+        ports:
+            - 5230:5230
+        volumes:
+            - ./data/memos:/var/opt/memos:z
 
-  vaultwarden:
-    image: vaultwarden/server:latest
-    container_name: vaultwarden
-    volumes:
-      - ./data/vaultwarden:/data
-    environment:
-      - I_REALLY_WANT_VOLATILE_STORAGE=true
-      - DOMAIN=https://vault.b5nine.com
-    ports:
-      - 12380:80
+    vaultwarden:
+        image: vaultwarden/server:latest
+        volumes:
+            - ./data/vaultwarden:/data:z
+        environment:
+            - I_REALLY_WANT_VOLATILE_STORAGE=true
+            - DOMAIN=https://vault.${CADDY__DOMAIN}
+        ports:
+            - 12380:80
 
+    syncthing:
+        image: syncthing/syncthing
+        # hostname: my-syncthing
+        # environment:
+        #   - PUID=1000
+        #   - PGID=1000
+        volumes:
+            - ./data:/var/syncthing:z
+        ports:
+            - 8384:8384 # Web UI
+            - 22000:22000/tcp # TCP file transfers
+            - 22000:22000/udp # QUIC file transfers
+            - 21027:21027/udp # Receive local discovery broadcasts
+        healthcheck:
+            test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
+            interval: 1m
+            timeout: 10s
+            retries: 3
 
-  syncthing:
-    image: syncthing/syncthing
-    container_name: syncthing
-    hostname: my-syncthing
-    # environment:
-    #   - PUID=1000
-    #   - PGID=1000
-    volumes:
-      - ./data:/var/syncthing
-    ports:
-      - 8384:8384 # Web UI
-      - 22000:22000/tcp # TCP file transfers
-      - 22000:22000/udp # QUIC file transfers
-      - 21027:21027/udp # Receive local discovery broadcasts
-    restart: unless-stopped
-    healthcheck:
-      test: curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK || exit 1
-      interval: 1m
-      timeout: 10s
-      retries: 3
+    forgejo:
+        image: codeberg.org/forgejo/forgejo:9
+        environment:
+            - TZ=Europe/Amsterdam
+            - ROOT_URL=https://git.${CADDY__DOMAIN}
+            - DOMAIN=git.${CADDY__DOMAIN}
+            - DB_TYPE=sqlite3
+            - SSH_DOMAIN=${CADDY__DOMAIN}
+            - SSH_PORT=3022
+            - OFFLINE_MODE=true
+        volumes:
+            - ./data/forgejo:/data:z
+        ports:
+            - 3000:3000
+            - 3022:3022
 
-  forgejo:
-    image: codeberg.org/forgejo/forgejo:9
-    container_name: forgejo
-    environment:
-      - TZ=Europe/Amsterdam
-      - ROOT_URL=https://git.b5nine.com
-      - DOMAIN=git.b5nine.com
-      - DB_TYPE=sqlite3
-      - SSH_DOMAIN=b5nine.com
-      - SSH_PORT=3022
-      - OFFLINE_MODE=true
-    volumes:
-      - ./data/forgejo:/data
-    ports:
-      - 3000:3000
-      - 3022:3022
+    # grafana:
+    #     image: grafana/grafana:latest
+    #     container_name: grafana
+    #     ports:
+    #         - 13000:3000
+    #     volumes:
+    #         - ./data/grafana:/var/lib/grafana:z
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - 13000:3000
-    volumes:
-      - ./data/grafana:/var/lib/grafana
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./data/prometheus:/prometheus
-      - ./config/prometheus:/etc/prometheus
-    ports:
-      - 19090:9090
-
+    # prometheus:
+    #     image: prom/prometheus:latest
+    #     container_name: prometheus
+    #     volumes:
+    #         - ./data/prometheus:/prometheus:z
+    #         - ./config/prometheus:/etc/prometheus:z
+    #     ports:
+    #         - 19090:9090
 # docker run --name some-sftpgo -p 8080:8080 -p 2022:2022 -d "drakkan/sftpgo:tag"
 # --mount type=bind,source=/my/own/sftpgodata,target=/srv/sftpgo \
 #     --mount type=bind,source=/my/own/sftpgohome,target=/var/lib/sftpgo
-  # sftpgo:
-  #   image: drakkan/sftpgo:latest
-  #   ports:
-  #     - 28080:8080
-  #     - 22022:2022 # sftp://100.102.130.116:22022
-  #   volumes:
-  #     - ./data/sftpgo:/srv/sftpgo
-  #     - ./config/sftpgo:/var/lib/sftpgo
+# sftpgo:
+#   image: drakkan/sftpgo:latest
+#   ports:
+#     - 28080:8080
+#     - 22022:2022 # sftp://100.102.130.116:22022
+#   volumes:
+#     - ./data/sftpgo:/srv/sftpgo
+#     - ./config/sftpgo:/var/lib/sftpgo

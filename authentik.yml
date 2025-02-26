@@ -3,98 +3,102 @@
 # https://xpufx.com/posts/protecting-your-first-app-with-authentik/
 
 secrets:
-  akey:
-    file: ./secrets/authentik.key
+    akey:
+        file: ./secrets/authentik.key
 
 services:
-  postgresql:
-    image: docker.io/library/postgres:16-alpine
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 5s
-    volumes:
-      - ./data/authentik/postgresql:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: authentik
-      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD:?needed}
-      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:?needed}
-  
-  redis:
-    image: docker.io/library/redis:alpine
-    command: --save 60 1 --loglevel warning
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 3s
-    volumes:
-      - redis:/data
-  
-  server:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.2.0}
-    restart: unless-stopped
-    command: server
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__NAME: authentik
-      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
-      AUTHENTIK_DISABLE_STARTUP_ANALYTICS: true
-      AUTHENTIK_DISABLE_UPDATE_CHECK: true
-      AUTHENTIK_ERROR_REPORTING__ENABLED: false
-      AUTHENTIK_SECRET_KEY: file:///run/secrets/akey
-    secrets:
-      - akey
-    volumes:
-      - ./data/authentik/media:/media
-      - ./data/authentik/templates:/templates
-    ports:
-      - "80:9000"
-      - "443:9443"
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-  
-  worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.2.0}
-    restart: unless-stopped
-    command: worker
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__NAME: authentik
-      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
-      AUTHENTIK_SECRET_KEY: file:///run/secrets/akey
-    secrets:
-      - akey
-    # `user: root` and the docker socket volume are optional.
-    # See more for the docker socket integration here:
-    # https://goauthentik.io/docs/outposts/integrations/docker
-    # Removing `user: root` also prevents the worker from fixing the permissions
-    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
-    # (1000:1000 by default)
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/authentik/media:/media
-      - ./data/authentik/certs:/certs
-      - ./data/authentik/templates:/templates
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    postgresql:
+        image: docker.io/library/postgres:16-alpine
+        restart: unless-stopped
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}",
+                ]
+            start_period: 20s
+            interval: 30s
+            retries: 5
+            timeout: 5s
+        volumes:
+            - ./data/authentik/postgresql:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: authentik
+            POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD:?needed}
+            POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:?needed}
+
+    redis:
+        image: docker.io/library/redis:alpine
+        command: --save 60 1 --loglevel warning
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+            start_period: 20s
+            interval: 30s
+            retries: 5
+            timeout: 3s
+        volumes:
+            - redis:/data
+
+    server:
+        image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.2.0}
+        restart: unless-stopped
+        command: server
+        environment:
+            AUTHENTIK_REDIS__HOST: redis
+            AUTHENTIK_POSTGRESQL__HOST: postgresql
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER}
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+            AUTHENTIK_DISABLE_STARTUP_ANALYTICS: true
+            AUTHENTIK_DISABLE_UPDATE_CHECK: true
+            AUTHENTIK_ERROR_REPORTING__ENABLED: false
+            AUTHENTIK_SECRET_KEY: file:///run/secrets/akey
+        secrets:
+            - akey
+        volumes:
+            - ./data/authentik/media:/media
+            - ./data/authentik/templates:/templates
+        ports:
+            - "9000:9000"
+            - "9443:9443"
+        depends_on:
+            postgresql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+    worker:
+        image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.2.0}
+        restart: unless-stopped
+        command: worker
+        environment:
+            AUTHENTIK_REDIS__HOST: redis
+            AUTHENTIK_POSTGRESQL__HOST: postgresql
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER}
+            AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+            AUTHENTIK_SECRET_KEY: file:///run/secrets/akey
+        secrets:
+            - akey
+        # `user: root` and the docker socket volume are optional.
+        # See more for the docker socket integration here:
+        # https://goauthentik.io/docs/outposts/integrations/docker
+        # Removing `user: root` also prevents the worker from fixing the permissions
+        # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
+        # (1000:1000 by default)
+        user: root
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./data/authentik/media:/media
+            - ./data/authentik/certs:/certs
+            - ./data/authentik/templates:/templates
+        depends_on:
+            postgresql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
 
 volumes:
-  redis:
-    driver: local
+    redis:
+        driver: local

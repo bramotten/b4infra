@@ -5,7 +5,7 @@ export AUTHENTIK_POSTGRESQL__USER
 export AUTHENTIK_POSTGRESQL__PASSWORD
 
 up-%:
-	docker compose -f $*.yml up
+	docker compose -f $*.yml --remove-orphans up
 	docker compose -f $*.yml down
 
 certbot-b5nine.com:

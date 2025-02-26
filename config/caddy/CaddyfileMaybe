@@ -1,1 +1,42 @@
-strawberry fields forever
+{
+    acme_dns cloudflare 9H7ErUfwv9XR3IAaGGNseNQtoZzXltQL_V_yzifv
+    email b4mail@proton.me
+}
+(basics) {
+      # tls /run/secrets/fullchain /run/secrets/privkey
+      encode gzip
+  }
+  (logging) {
+      log {
+          output file /var/log/access.log
+          # format single_field common_log
+      }
+  }
+
+  memos.b5nine.com {
+      import basics
+      reverse_proxy http://100.102.130.116:5230
+  }
+
+  vault.b5nine.com {
+      import basics
+      import logging
+      reverse_proxy http://100.102.130.116:12380
+  }
+
+  sync.b5nine.com {
+      import basics
+      reverse_proxy http://100.102.130.116:8384
+  }
+
+  git.b5nine.com {
+      import basics
+      import logging
+      reverse_proxy http://100.102.130.116:3000
+  }
+
+  immich.b5nine.com {
+      import basics
+      import logging
+      reverse_proxy http://100.102.130.116:2283
+  }
